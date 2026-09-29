@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { sql } from "@vercel/postgres";
 import { ensureSchema, type Lead } from "@/lib/db";
 
@@ -24,7 +25,27 @@ function formatDate(iso: string): string {
   }).format(d);
 }
 
-export default async function AdminPage() {
+// Comparação em tempo constante para não vazar o caminho por timing.
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+export default async function SecretAdminPage({
+  params,
+}: {
+  params: Promise<{ secret: string }>;
+}) {
+  const { secret } = await params;
+  const expected = process.env.ADMIN_PATH;
+  if (!expected || !safeEqual(secret, expected)) {
+    notFound();
+  }
+
   let leads: Lead[] = [];
   let error: string | null = null;
   try {

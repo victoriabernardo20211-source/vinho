@@ -23,14 +23,25 @@ URL em `Storage → seu banco → .env.local`).
 2. **Storage → Create Database → Postgres**, e conecte ao projeto.
    As variáveis `POSTGRES_URL` etc. são injetadas automaticamente.
 3. **Project Settings → Environment Variables:**
-   - `ADMIN_PASSWORD` — senha do painel `/admin` (usuário fixo: `admin`).
+   - `ADMIN_PATH` — caminho do painel de leads, sem barra. Uma string
+     longa e aleatória que só você sabe (ex.: `9uji8sdfhjuhioa`). É a
+     URL do painel: `https://seu-site.vercel.app/<ADMIN_PATH>`.
+   - `ADMIN_PASSWORD` — senha do painel (usuário fixo: `admin`).
    - `NEXT_PUBLIC_CONSULTANT_PHONE` — WhatsApp do consultor no formato
      internacional só com dígitos (ex.: `5511999999999`).
    - `NEXT_PUBLIC_CONSULTANT_GREETING` — mensagem que abre no WhatsApp.
 4. **Redeploy**. Pronto.
 
-Sem `ADMIN_PASSWORD`, o painel `/admin` fica bloqueado (nunca aceita
-credencial). Isso é proposital — evita deixar aberto por engano.
+Sem `ADMIN_PATH` ou `ADMIN_PASSWORD` definidos, o painel simplesmente
+não existe (qualquer URL retorna 404). Isso é proposital — evita
+deixar aberto por engano.
+
+## Painel
+
+O painel fica em `/<ADMIN_PATH>`. Guarde essa URL no seu gerenciador de
+senhas — ela não aparece no código nem no repositório, só na env var
+do Vercel. Se o valor vazar, você troca a env, redeploya e a URL antiga
+volta a ser 404 imediatamente.
 
 ## Estrutura
 
@@ -42,9 +53,10 @@ app/
   banner.tsx        SVG do topo
   quiz.tsx          client component com toda a lógica do quiz
   api/leads/route.ts   POST cria lead; roda schema-migration idempotente
-  admin/page.tsx    tabela dos leads, protegida por middleware
+  [secret]/page.tsx catch-all: só serve o painel se o path bater com
+                    ADMIN_PATH; qualquer outra URL vira 404
 lib/db.ts           `ensureSchema()` que cria a tabela se não existir
-middleware.ts       Basic Auth em /admin usando ADMIN_PASSWORD
+middleware.ts       Basic Auth quando o path bate com ADMIN_PATH
 public/kit-evino.webp   imagem do combo mostrada na tela de resgate
 ```
 
