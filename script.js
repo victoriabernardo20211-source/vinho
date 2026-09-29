@@ -23,9 +23,15 @@ const QUESTIONS = [
   },
 ];
 
-// Link para onde o botão "Resgatar Desconto" deve levar.
-// Troque pela URL real do seu combo.
-const CHECKOUT_URL = "#";
+// Configuração do kit que aparece depois de "Resgatar Desconto".
+const REWARD = {
+  title:
+    "Kit DV Catena Malbec Cx 6 Und + 2 Taças de Cristal + 10 Vinhos com Bolsa Térmica Grátis",
+  image: "kit-evino.webp",
+  alt: "Kit com 10 vinhos tintos e bolsa térmica exclusiva",
+  ctaLabel: "Comprar agora",
+  ctaUrl: "#", // troque pelo link do produto
+};
 
 // ─── daqui pra baixo é só a lógica da tela ─────────────────────────
 
@@ -62,13 +68,13 @@ function renderQuestion() {
     btn.type = "button";
     btn.className = "answer";
     btn.textContent = opt;
-    btn.addEventListener("click", () => onAnswer(i, btn));
+    btn.addEventListener("click", () => onAnswer(i));
     list.appendChild(btn);
   });
   card.appendChild(list);
 }
 
-function onAnswer(chosen, btn) {
+function onAnswer(chosen) {
   if (state.locked) return;
   state.locked = true;
 
@@ -113,22 +119,57 @@ function renderFinish() {
     "Aproveite nosso Combo com 16 Vinhos + 2 brindes com desconto especial!";
   wrap.appendChild(p);
 
-  const cta = document.createElement("a");
+  const cta = document.createElement("button");
+  cta.type = "button";
   cta.className = "cta";
-  cta.href = CHECKOUT_URL;
   cta.textContent = "Resgatar Desconto";
-  if (CHECKOUT_URL.startsWith("http")) {
+  cta.addEventListener("click", renderReward);
+  wrap.appendChild(cta);
+
+  card.appendChild(wrap);
+}
+
+function renderReward() {
+  card.innerHTML = "";
+
+  const wrap = document.createElement("div");
+  wrap.className = "reward";
+
+  const badge = document.createElement("span");
+  badge.className = "reward-badge";
+  badge.textContent = "Desconto liberado";
+  wrap.appendChild(badge);
+
+  const h = document.createElement("h2");
+  h.className = "reward-title";
+  h.textContent = REWARD.title;
+  wrap.appendChild(h);
+
+  const figure = document.createElement("figure");
+  figure.className = "reward-figure";
+  const img = document.createElement("img");
+  img.src = REWARD.image;
+  img.alt = REWARD.alt;
+  img.loading = "eager";
+  figure.appendChild(img);
+  wrap.appendChild(figure);
+
+  const cta = document.createElement("a");
+  cta.className = "cta cta-buy";
+  cta.href = REWARD.ctaUrl;
+  cta.textContent = REWARD.ctaLabel;
+  if (REWARD.ctaUrl.startsWith("http")) {
     cta.target = "_blank";
     cta.rel = "noopener";
   }
   wrap.appendChild(cta);
 
-  const retry = document.createElement("button");
-  retry.type = "button";
-  retry.className = "retry";
-  retry.textContent = "Refazer o quiz";
-  retry.addEventListener("click", reset);
-  wrap.appendChild(retry);
+  const back = document.createElement("button");
+  back.type = "button";
+  back.className = "retry";
+  back.textContent = "Refazer o quiz";
+  back.addEventListener("click", reset);
+  wrap.appendChild(back);
 
   card.appendChild(wrap);
 }

@@ -195,6 +195,54 @@ body {
   text-decoration: underline;
 }
 
+.reward {
+  text-align: center;
+}
+
+.reward-badge {
+  display: inline-block;
+  background: #eaf6ee;
+  color: #178c4a;
+  border: 1px solid #cfe7d6;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 5px 12px;
+  margin-bottom: 12px;
+}
+
+.reward-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 16px;
+  line-height: 1.35;
+}
+
+.reward-figure {
+  margin: 0 0 18px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0f0805;
+}
+
+.reward-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+.cta-buy {
+  background: var(--brand);
+}
+
+.cta-buy:hover {
+  background: var(--brand-dark);
+}
+
 .foot {
   text-align: center;
   color: var(--muted);
