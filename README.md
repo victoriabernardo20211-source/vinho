@@ -2,8 +2,8 @@
 
 App Next.js (App Router, TypeScript) que hospeda um quiz curto e captura
 leads em **Vercel Postgres**. Ao final do quiz, a pessoa preenche
-nome e WhatsApp; o registro vai pro banco e o WhatsApp do consultor
-abre com uma mensagem pré-preenchida.
+nome e WhatsApp; o registro vai pro banco e você entra em contato depois
+consultando o painel `/…`.
 
 ## Rodar localmente
 
@@ -27,9 +27,6 @@ URL em `Storage → seu banco → .env.local`).
      longa e aleatória que só você sabe (ex.: `9uji8sdfhjuhioa`). É a
      URL do painel: `https://seu-site.vercel.app/<ADMIN_PATH>`.
    - `ADMIN_PASSWORD` — senha do painel (usuário fixo: `admin`).
-   - `NEXT_PUBLIC_CONSULTANT_PHONE` — WhatsApp do consultor no formato
-     internacional só com dígitos (ex.: `5511999999999`).
-   - `NEXT_PUBLIC_CONSULTANT_GREETING` — mensagem que abre no WhatsApp.
 4. **Redeploy**. Pronto.
 
 Sem `ADMIN_PATH` ou `ADMIN_PASSWORD` definidos, o painel simplesmente

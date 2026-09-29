@@ -39,12 +39,6 @@ const REWARD = {
   ctaLabel: "Resgatar agora",
 };
 
-const CONSULTANT_PHONE =
-  process.env.NEXT_PUBLIC_CONSULTANT_PHONE ?? "5511999999999";
-const CONSULTANT_GREETING =
-  process.env.NEXT_PUBLIC_CONSULTANT_GREETING ??
-  "Olá! Acabei de fazer o quiz e quero resgatar o desconto do combo especial.";
-
 type Stage =
   | { kind: "question"; index: number; picked: number | null }
   | { kind: "finish" }
@@ -244,9 +238,6 @@ function LeadCard({
       return;
     }
 
-    const text = `${CONSULTANT_GREETING}\n\nNome: ${cleanName}\nTelefone: ${phone}`;
-    const url = `https://wa.me/${CONSULTANT_PHONE}?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank", "noopener");
     onDone(cleanName);
   }
 
@@ -319,24 +310,15 @@ function ThanksCard({
   firstName: string;
   onRestart: () => void;
 }) {
-  const url = `https://wa.me/${CONSULTANT_PHONE}?text=${encodeURIComponent(CONSULTANT_GREETING)}`;
   const first = firstName.split(" ")[0];
   return (
     <div className="reward">
       <span className="reward-badge">Contato registrado</span>
       <h2 className="reward-title">Obrigado, {first}!</h2>
       <p className="lead-intro">
-        Se o WhatsApp não abriu automaticamente, toque no botão abaixo para
-        falar com o consultor.
+        Recebemos seus dados. Em breve entramos em contato pelo WhatsApp para
+        liberar o desconto.
       </p>
-      <a
-        className="cta cta-buy"
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Abrir WhatsApp
-      </a>
       <button type="button" className="retry" onClick={onRestart}>
         Refazer o quiz
       </button>
