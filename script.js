@@ -29,8 +29,15 @@ const REWARD = {
     "Kit DV Catena Malbec Cx 6 Und + 2 Taças de Cristal + 10 Vinhos com Bolsa Térmica Grátis",
   image: "kit-evino.webp",
   alt: "Kit com 10 vinhos tintos e bolsa térmica exclusiva",
-  ctaLabel: "Comprar agora",
-  ctaUrl: "#", // troque pelo link do produto
+  ctaLabel: "Resgatar agora",
+};
+
+// Consultor que recebe o lead pelo WhatsApp.
+// Coloque o número no formato internacional, só dígitos: 55 + DDD + número.
+const CONSULTANT = {
+  phone: "5511999999999",
+  greeting:
+    "Olá! Acabei de fazer o quiz e quero resgatar o desconto do combo especial.",
 };
 
 // ─── daqui pra baixo é só a lógica da tela ─────────────────────────
@@ -154,14 +161,112 @@ function renderReward() {
   figure.appendChild(img);
   wrap.appendChild(figure);
 
+  const intro = document.createElement("p");
+  intro.className = "lead-intro";
+  intro.textContent =
+    "Preencha seus dados e um consultor entra em contato pelo WhatsApp para liberar o desconto.";
+  wrap.appendChild(intro);
+
+  const form = document.createElement("form");
+  form.className = "lead-form";
+  form.noValidate = true;
+  form.innerHTML = `
+    <label class="field">
+      <span class="field-label">Nome</span>
+      <input class="field-input" type="text" name="name" autocomplete="name"
+             required minlength="2" placeholder="Seu nome" />
+      <span class="field-error" data-for="name" hidden></span>
+    </label>
+    <label class="field">
+      <span class="field-label">WhatsApp (com DDD)</span>
+      <input class="field-input" type="tel" name="phone" autocomplete="tel-national"
+             required inputmode="numeric" placeholder="(11) 99999-9999" />
+      <span class="field-error" data-for="phone" hidden></span>
+    </label>
+    <button type="submit" class="cta cta-buy">${REWARD.ctaLabel}</button>
+  `;
+  form.addEventListener("submit", onLeadSubmit);
+  wrap.appendChild(form);
+
+  const disclaimer = document.createElement("p");
+  disclaimer.className = "lead-disclaimer";
+  disclaimer.textContent =
+    "Ao enviar, seus dados são usados apenas para o consultor entrar em contato sobre este combo.";
+  wrap.appendChild(disclaimer);
+
+  const back = document.createElement("button");
+  back.type = "button";
+  back.className = "retry";
+  back.textContent = "Refazer o quiz";
+  back.addEventListener("click", reset);
+  wrap.appendChild(back);
+
+  card.appendChild(wrap);
+  wrap.querySelector('input[name="name"]').focus();
+}
+
+function onLeadSubmit(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const name = form.name.value.trim();
+  const phoneRaw = form.phone.value.trim();
+  const phoneDigits = phoneRaw.replace(/\D/g, "");
+
+  const errors = {
+    name: name.length < 2 ? "Digite seu nome." : "",
+    phone:
+      phoneDigits.length < 10 || phoneDigits.length > 13
+        ? "Digite um WhatsApp válido com DDD."
+        : "",
+  };
+
+  let ok = true;
+  form.querySelectorAll(".field-error").forEach((el) => {
+    const key = el.dataset.for;
+    if (errors[key]) {
+      el.textContent = errors[key];
+      el.hidden = false;
+      ok = false;
+    } else {
+      el.hidden = true;
+    }
+  });
+  if (!ok) return;
+
+  const text = `${CONSULTANT.greeting}\n\nNome: ${name}\nTelefone: ${phoneRaw}`;
+  const url = `https://wa.me/${CONSULTANT.phone}?text=${encodeURIComponent(text)}`;
+  window.open(url, "_blank", "noopener");
+  renderLeadThanks(name);
+}
+
+function renderLeadThanks(name) {
+  card.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "reward";
+
+  const badge = document.createElement("span");
+  badge.className = "reward-badge";
+  badge.textContent = "Contato registrado";
+  wrap.appendChild(badge);
+
+  const h = document.createElement("h2");
+  h.className = "reward-title";
+  h.textContent = `Obrigado${name ? ", " + name.split(" ")[0] : ""}!`;
+  wrap.appendChild(h);
+
+  const p = document.createElement("p");
+  p.className = "lead-intro";
+  p.textContent =
+    "Se o WhatsApp não abriu automaticamente, toque no botão abaixo para falar com o consultor.";
+  wrap.appendChild(p);
+
+  const url = `https://wa.me/${CONSULTANT.phone}?text=${encodeURIComponent(CONSULTANT.greeting)}`;
   const cta = document.createElement("a");
   cta.className = "cta cta-buy";
-  cta.href = REWARD.ctaUrl;
-  cta.textContent = REWARD.ctaLabel;
-  if (REWARD.ctaUrl.startsWith("http")) {
-    cta.target = "_blank";
-    cta.rel = "noopener";
-  }
+  cta.href = url;
+  cta.target = "_blank";
+  cta.rel = "noopener";
+  cta.textContent = "Abrir WhatsApp";
   wrap.appendChild(cta);
 
   const back = document.createElement("button");
