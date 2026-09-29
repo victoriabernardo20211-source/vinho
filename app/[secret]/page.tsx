@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { sql } from "@vercel/postgres";
 import { ensureSchema, type Lead } from "@/lib/db";
+import LiveSessions from "./live-sessions";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -58,6 +59,8 @@ export default async function SecretAdminPage({
 
   return (
     <main className="admin">
+      <LiveSessions />
+
       <h1>Leads</h1>
       <p className="muted">
         {leads.length} contato{leads.length === 1 ? "" : "s"} registrado

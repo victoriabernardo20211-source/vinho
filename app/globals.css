@@ -284,3 +284,96 @@ body {
   border: 1px dashed #d6cdcd;
   border-radius: 8px;
 }
+
+.live { margin-bottom: 36px; }
+.live-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.live-head h2 { font-size: 18px; margin: 0; }
+.live-status {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.live-status[data-status="loading"]::before,
+.live-status[data-status="ok"]::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #178c4a;
+  margin-right: 6px;
+  vertical-align: middle;
+  animation: pulse 2s ease-in-out infinite;
+}
+.live-status[data-status="error"]::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.live-funnel {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.live-tile {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 8px;
+  padding: 12px 10px;
+  text-align: center;
+  min-width: 0;
+}
+.live-tile[data-empty="true"] { opacity: 0.45; }
+.live-tile-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.live-tile-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eaf6ee;
+  color: #178c4a;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  vertical-align: middle;
+}
+
+.admin tr[data-lead="true"] td { background: #f7fbf8; }
+
+@media (max-width: 700px) {
+  .live-funnel {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .admin table { font-size: 13px; }
+  .admin th, .admin td { padding: 8px 10px; }
+}

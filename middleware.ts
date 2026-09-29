@@ -1,16 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-// Protege o painel de leads. O CAMINHO do painel é definido pela env
-// ADMIN_PATH (só está no Vercel, nunca no repositório). Além disso,
-// pede Basic Auth com senha ADMIN_PASSWORD (usuário fixo: "admin").
-// Sem alguma dessas envs, o painel nunca é servido.
+// Basic Auth para o painel (`/<ADMIN_PATH>`) e para GET /api/track,
+// que o painel usa para puxar as sessões ao vivo. POST /api/track e
+// POST /api/leads seguem públicos: são chamados pelo próprio quiz.
 export function middleware(request: NextRequest) {
   const adminPath = process.env.ADMIN_PATH;
   const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPath || !adminPassword) return NextResponse.next();
+  if (!adminPassword) return NextResponse.next();
 
   const pathname = request.nextUrl.pathname.replace(/^\/+/, "");
-  if (pathname !== adminPath) return NextResponse.next();
+  const isAdminPath = adminPath && pathname === adminPath;
+  const isAdminApi =
+    pathname === "api/track" && request.method === "GET";
+
+  if (!isAdminPath && !isAdminApi) return NextResponse.next();
 
   const header = request.headers.get("authorization") ?? "";
   const [scheme, encoded] = header.split(" ");
@@ -32,7 +35,9 @@ export function middleware(request: NextRequest) {
   });
 }
 
-// Roda em qualquer rota da app, exceto assets internos e /api/*.
 export const config = {
-  matcher: ["/((?!_next/|api/|favicon|kit-evino).*)"],
+  matcher: [
+    "/api/track",
+    "/((?!_next/|api/|favicon|kit-evino).*)",
+  ],
 };

@@ -1,6 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+type TrackStage = "q1" | "q2" | "q3" | "q4" | "finish" | "lead" | "thanks";
+
+function generateSessionId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  // Fallback improvável mas seguro para runtimes antigos.
+  return "00000000-0000-4000-8000-000000000000".replace(/[08]/g, (c) =>
+    (
+      (Number(c) ^ (Math.random() * 16)) & (c === "0" ? 15 : 3) | (c === "0" ? 0 : 8)
+    ).toString(16),
+  );
+}
+
+function trackStage(sessionId: string, stage: TrackStage, score: number) {
+  const body = JSON.stringify({ sessionId, stage, score });
+  const url = "/api/track";
+  // Prefer beacon quando disponível — não bloqueia navegação.
+  if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
+    try {
+      const blob = new Blob([body], { type: "application/json" });
+      if (navigator.sendBeacon(url, blob)) return;
+    } catch {
+      // ignora e cai no fetch abaixo
+    }
+  }
+  fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body,
+    keepalive: true,
+  }).catch(() => {
+    /* tracking best-effort */
+  });
+}
 
 type Question = {
   text: string;
@@ -52,6 +88,7 @@ export default function Quiz() {
     picked: null,
   });
   const [score, setScore] = useState(0);
+  const sessionId = useMemo(() => generateSessionId(), []);
 
   const totalSteps = QUESTIONS.length;
   const progressStep =
@@ -60,6 +97,30 @@ export default function Quiz() {
     100,
     Math.round((progressStep / totalSteps) * 100),
   );
+
+  const currentStage: TrackStage =
+    stage.kind === "question"
+      ? (["q1", "q2", "q3", "q4"] as const)[stage.index] ?? "q1"
+      : stage.kind === "finish"
+        ? "finish"
+        : stage.kind === "lead"
+          ? "lead"
+          : "thanks";
+
+  // Registra cada mudança de tela.
+  useEffect(() => {
+    trackStage(sessionId, currentStage, score);
+  }, [sessionId, currentStage, score]);
+
+  // Heartbeat a cada 15s para manter a sessão marcada como "ao vivo".
+  const stageRef = useRef({ stage: currentStage, score });
+  stageRef.current = { stage: currentStage, score };
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      trackStage(sessionId, stageRef.current.stage, stageRef.current.score);
+    }, 15000);
+    return () => window.clearInterval(interval);
+  }, [sessionId]);
 
   function handleAnswer(index: number) {
     if (stage.kind !== "question" || stage.picked !== null) return;
@@ -109,6 +170,7 @@ export default function Quiz() {
         {stage.kind === "lead" && (
           <LeadCard
             score={score}
+            sessionId={sessionId}
             onDone={(firstName) => setStage({ kind: "thanks", firstName })}
           />
         )}
@@ -190,9 +252,11 @@ function FinishCard({
 
 function LeadCard({
   score,
+  sessionId,
   onDone,
 }: {
   score: number;
+  sessionId: string;
   onDone: (firstName: string) => void;
 }) {
   const [name, setName] = useState("");
@@ -223,6 +287,7 @@ function LeadCard({
           phone,
           score,
           total: QUESTIONS.length,
+          sessionId,
         }),
       });
       if (!res.ok) {
