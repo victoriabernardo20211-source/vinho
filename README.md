@@ -1,41 +1,78 @@
 # Quiz do Vinho
 
-Quiz estático de 4 perguntas com tela final de "Resgatar Desconto".
-HTML/CSS/JS puros, sem build.
+App Next.js (App Router, TypeScript) que hospeda um quiz curto e captura
+leads em **Vercel Postgres**. Ao final do quiz, a pessoa preenche
+nome e WhatsApp; o registro vai pro banco e o WhatsApp do consultor
+abre com uma mensagem pré-preenchida.
 
 ## Rodar localmente
 
-Qualquer servidor estático serve. Exemplos:
-
 ```bash
-# Python 3
-python3 -m http.server 5173
-
-# Node
-npx serve .
+pnpm install        # ou npm install
+pnpm dev            # http://localhost:3000
 ```
 
-Abra <http://localhost:5173>.
+Para o `/api/leads` funcionar local, exporte `POSTGRES_URL` apontando
+para um banco Postgres (o próprio Vercel Postgres funciona: pegue a
+URL em `Storage → seu banco → .env.local`).
 
 ## Deploy no Vercel
 
-1. Faça push do repositório para o GitHub (já está apontado para
-   `victoriabernardo20211-source/vinho`, branch `claude/funny-gauss-dvh42c`).
-2. Em <https://vercel.com/new>, importe o repositório.
-3. Framework Preset: **Other** (é site estático).
-4. Root Directory: `.` — deixe o padrão.
-5. Build Command: deixe **vazio**.
-6. Output Directory: deixe **vazio** (o Vercel serve os arquivos da raiz).
-7. Deploy.
+1. Importe o repositório em <https://vercel.com/new>. O Vercel detecta
+   Next.js sozinho — não precisa configurar build nem output.
+2. **Storage → Create Database → Postgres**, e conecte ao projeto.
+   As variáveis `POSTGRES_URL` etc. são injetadas automaticamente.
+3. **Project Settings → Environment Variables:**
+   - `ADMIN_PASSWORD` — senha do painel `/admin` (usuário fixo: `admin`).
+   - `NEXT_PUBLIC_CONSULTANT_PHONE` — WhatsApp do consultor no formato
+     internacional só com dígitos (ex.: `5511999999999`).
+   - `NEXT_PUBLIC_CONSULTANT_GREETING` — mensagem que abre no WhatsApp.
+4. **Redeploy**. Pronto.
 
-Também dá para instalar a CLI e rodar `vercel` na raiz do projeto —
-ela pergunta e cria o projeto.
+Sem `ADMIN_PASSWORD`, o painel `/admin` fica bloqueado (nunca aceita
+credencial). Isso é proposital — evita deixar aberto por engano.
+
+## Estrutura
+
+```
+app/
+  layout.tsx        shell + fontes
+  page.tsx          página do quiz
+  globals.css       estilos
+  banner.tsx        SVG do topo
+  quiz.tsx          client component com toda a lógica do quiz
+  api/leads/route.ts   POST cria lead; roda schema-migration idempotente
+  admin/page.tsx    tabela dos leads, protegida por middleware
+lib/db.ts           `ensureSchema()` que cria a tabela se não existir
+middleware.ts       Basic Auth em /admin usando ADMIN_PASSWORD
+public/kit-evino.webp   imagem do combo mostrada na tela de resgate
+```
+
+## Banco
+
+Uma única tabela, criada automaticamente na primeira chamada da API:
+
+```sql
+CREATE TABLE leads (
+  id           BIGSERIAL PRIMARY KEY,
+  name         TEXT        NOT NULL,
+  phone        TEXT        NOT NULL,
+  phone_digits TEXT        NOT NULL,
+  score        INTEGER,
+  total        INTEGER,
+  ip           TEXT,
+  user_agent   TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+`phone_digits` guarda a versão só-dígitos pra formar o link
+`wa.me/<phone_digits>` do painel sem re-normalizar.
 
 ## Personalizar
 
-- Perguntas e resposta certa: array `QUESTIONS` em `script.js`.
-- Link do botão final: constante `CHECKOUT_URL` em `script.js`.
-- Cores da marca: variáveis `--brand*` em `styles.css`.
-- Nome no topo: `<span class="brand-name">` em `index.html`.
-- Banner: SVG inline em `index.html` (troque por `<img src="banner.png">`
-  se preferir usar uma imagem sua — coloque o arquivo na raiz).
+- Perguntas e resposta certa: array `QUESTIONS` em `app/quiz.tsx`.
+- Título do combo, imagem e alt: objeto `REWARD` em `app/quiz.tsx`.
+- Cores da marca: variáveis `--brand*` em `app/globals.css`.
+- Banner: `app/banner.tsx` (SVG inline — troque por um `<Image>` se
+  preferir usar uma foto sua colocada em `public/`).
