@@ -9,11 +9,6 @@ export default function Page() {
       </header>
       <Banner />
       <Quiz />
-      <footer className="foot">
-        <p>
-          Quiz demonstrativo. Perguntas em <code>app/quiz.tsx</code>.
-        </p>
-      </footer>
     </main>
   );
 }
